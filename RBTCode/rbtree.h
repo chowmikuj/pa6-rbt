@@ -270,7 +270,38 @@ private:
      * Left-rotate method described on p. 313 of CLRS.
      */
     void left_rotate(Node<K, V> *x) {
-        // TODO
+        /* pseudo start
+        y = x.right                  // set y
+        x.right = y.left             // turn y's left subtree into x's right subtree
+        if y.left != null
+            y.left.parent = x
+        y.parent = x.parent          // link x's parent to y
+        if x.parent == null
+            root = y
+        else if x == x.parent.left
+            x.parent.left = y
+        else
+            x.parent.right = y
+        y.left = x                   // put x on y's left
+        x.parent = y
+        pseudo end */
+
+        y = x->right;                 // set y
+        x->right = y->left;           // turn y's left subtree into x's right subtree
+        if (y->left != nullptr) {
+            y->left->parent = x;
+        }
+        y->parent = x->parent;        // link x's parent to y
+        if (x->parent == nullptr) {
+            root_ = y;
+        } else if (x == x->parent->left) {
+            x->parent->left = y;
+        } else {
+            x->parent->right = y;
+        }
+
+        y->left = x;
+        x->parent = y;
     }
 
     /**
