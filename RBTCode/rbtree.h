@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Name        : rbtree.h
  * Author      : 
@@ -223,7 +224,44 @@ private:
      */
     void insert_fixup(Node<K, V> *z) {
         // TODO
-
+        Node<K, V> *y;
+        while(z->parent->color == RED){
+            if(z->parent == z->parent->parent->left){
+                y = z->parent->parent->right;
+                if(y->color == RED){
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                }
+                else{
+                    if(z == z->parent->right){
+                        z = z->parent;
+                        left_rotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    right_rotate(z->parent->parent);
+                }
+            else{
+                y = z->parent->parent->left;
+                if(y->color == RED){
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                }
+                else{
+                    if(z == z->parent->left){
+                        z = z->parent;
+                        right_rotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    left_rotate(z->parent->parent);
+                }
+            }
+        }
         // Last line below
         root_->color = BLACK;
     }
@@ -248,6 +286,16 @@ private:
      */
     int height(Node<K, V> *node) const {
         // TODO
+        if(node == nullptr){
+            return -1;
+        }
+        else{
+            lheight = height(node->left);
+            rheight = height(node->right);
+            h = max(lheight, rheight) + 1;
+        }
+
+        return h;
     }
 
     /**
@@ -256,6 +304,9 @@ private:
      */
     size_t leaf_count(Node<K, V> *node) const {
         // TODO
+        int count = 0;
+
+        
     }
 
     /**
@@ -280,6 +331,7 @@ private:
      */
     size_t width(Node<K, V> *node, size_t level) const {
         // TODO
+        if
     }
 
     size_t null_count() const {
@@ -291,7 +343,21 @@ private:
      * node.
      */
     size_t null_count(Node<K, V> *node) const {
-        // TODO
+        size_t count = 1;
+        if(node == nullptr){
+            return count;
+        }
+        if(node->left == nullptr && node->right == nullptr){
+            count = 2;
+            return count;
+        }
+        if(node->left == nullptr && node->right != nullptr){
+            count += null_count(node->right);
+        }
+        else{
+            count += null_count(node->left);
+        }
+        return count;
     }
 
     size_t sum_levels() const {
