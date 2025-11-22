@@ -1,11 +1,11 @@
 
 /*******************************************************************************
  * Name        : rbtree.h
- * Author      : 
+ * Author      : Joshua Dayo, Rachel Naomi Quedding
  * Version     : 1.0
- * Date        : 
+ * Date        : 11.22.2025
  * Description : Implementation of red-black tree.
- * Pledge      : 
+ * Pledge      : I pledge my honor that I have abided by the Stevens Honor System.
  ******************************************************************************/
 #ifndef RBTREE_H_
 #define RBTREE_H_
@@ -217,6 +217,12 @@ private:
      */
     void delete_tree(Node<K, V> *n) {
         // TODO
+        // prob a recursive function
+        if(n != nullptr){
+            delete_tree(n->left);       // recursive call on left child
+            delete_tree(n->right);      // recursive call on right child
+            delete n;
+        }
     }
 
     /**
@@ -309,6 +315,21 @@ private:
      */
     void right_rotate(Node<K, V> *x) {
         // TODO
+        y = x->left;                    // set y
+        x->left = y->right;             // turn y's right subtree into x's left subtree
+        if (y->right != nullptr) {
+            y->right->parent = x;
+        }
+        y->parent = x->parent;          // link x's parent to y
+        if (x->parent == nullptr) {
+            root_ = y;
+        } else if (x == x->parent->right) {
+            x->parent->right = y;
+        } else {
+            x->parent->left = y;
+        }
+        y->right = x;                   // put x on y's right
+        x->parent = y;
     }
 
     /**
