@@ -90,7 +90,40 @@ public:
      */
     void insert(const K &key, const V &value) {
         Node<K, V> *x = root_, *y = nullptr;
-        // TODO
+        while (x != nullptr){                       // findingour insertion point
+            y = x;
+            if (key == x->key()) {                      // check for duplicate key 
+                throw tree_exception("Duplicate key");
+            }
+
+            else if (key < x->key()) {                 // adventurign thru the left subtree
+                x = x->left;
+            }
+            else {                                     // or the right subtree
+                x = x->right;
+            }
+        }
+        
+        // create new node with the given key and value
+        Node<K, V> *z = new Node<K, V>(key, value);
+        z->parent = y;
+
+        if (y == nullptr) {                          // tree was empty
+            root_ = z;
+        }
+        else if (key < y->key()) {                   // left child
+            y->left = z;
+        }
+        else {                                       // right child
+            y->right = z;
+        }
+
+        // null children
+        z->left = nullptr;
+        z->right = nullptr;
+        z->color = RED;                             // new node is red
+        size_++;                                    // increment size
+        insert_fixup(z);                            // fix any violations
     }
 
     /**
@@ -230,34 +263,39 @@ private:
     void insert_fixup(Node<K, V> *z) {
         // TODO
         Node<K, V> *y;
-        while(z->parent->color == RED){ // While the color of z's parent is red
-            if(z->parent == z->parent->parent->left){ // Check if z's parent is a left child
-                y = z->parent->parent->right;   // Set y to be the right child of z's grandparent
-                if(y->color == RED){        
-                    z->parent->color = BLACK;
+        while(z->parent != nullptr && z->parent->color == RED){                 // While the color of z's parent is red, additional check for parent existing so that we don't segfault
+            if (z->parent->parent == nullptr) {   // Additional check for grandparent existing so that we don't segfault
+                break;
+            }
+
+            if(z->parent == z->parent->parent->left){   // Check if z's parent is a left child
+                y = z->parent->parent->right;           // Set y to be the right child of z's grandparent
+                if (y != nullptr && y->color == RED) {        
+                    z->parent->color = BLACK;           // case 1: z's uncle y is red
                     y->color = BLACK;
                     z->parent->parent->color = RED;
                     z = z->parent->parent;
                 }
-                else{
-                    if(z == z->parent->right){
+                else {
+                    if (z == z->parent->right) {        // case 2a: z's uncle y is black and z is a right child
                         z = z->parent;
                         left_rotate(z);
                     }
-                    z->parent->color = BLACK;
+                    z->parent->color = BLACK;           // case 3a: z's uncle y is black and z is a left child
                     z->parent->parent->color = RED;
                     right_rotate(z->parent->parent);
                 }
             }
-            else{
+            else {
                 y = z->parent->parent->left;
-                if(y->color == RED){
+
+                if (y != nullptr && y->color == RED) {
                     z->parent->color = BLACK;
                     y->color = BLACK;
                     z->parent->parent->color = RED;
                     z = z->parent->parent;
                 }
-                else{
+                else {
                     if(z == z->parent->left){
                         z = z->parent;
                         right_rotate(z);
@@ -296,6 +334,11 @@ private:
 
         Node<K,V> *y;
         y = x->right;                 // set y
+
+        if (y == nullptr) {
+            return;                   // can't rotate if y is null
+        }
+
         x->right = y->left;           // turn y's left subtree into x's right subtree
         if (y->left != nullptr) {
             y->left->parent = x;
@@ -321,6 +364,11 @@ private:
 
         Node<K,V> *y;
         y = x->left;                    // set y
+
+        if (y == nullptr) {
+            return;                   // can't rotate if y is null
+        }
+
         x->left = y->right;             // turn y's right subtree into x's left subtree
         if (y->right != nullptr) {
             y->right->parent = x;
@@ -406,7 +454,7 @@ private:
         size_t ld = diameter(node->left);
         size_t rd = diameter(node->right);
 
-        return std::max({lh + rh, ld, rd});
+        return std::max({lh + rh + 2, ld, rd}); //
     }
 
     /**
@@ -418,12 +466,17 @@ private:
         if(node == nullptr){
             return 0;
         }
-        if(level == 1){
+        if(level == 0){
             return 1;
         }
-        else if(level > 1){
-            return width(node->left, level -1) + width(node-> right, level - 1);
-        }
+        // else if(level > 1){
+        //     return width(node->left, level -1) + width(node-> right, level - 1);
+        //}
+
+        size_t left_width = width(node->left, level - 1);
+        size_t right_width = width(node->right, level - 1);
+
+        return left_width + right_width;
     }
 
     size_t null_count() const {
@@ -464,16 +517,17 @@ private:
      */
     size_t sum_levels(Node<K, V> *node, size_t level) const {
         // TODO
-        size_t leveli = 0;
-        while(leveli != level){
-            if(node == nullptr || level == 0){
+        size_t leveli = level;
+
+        if(node == nullptr) {
                 return 0;
-            }
-            else{
-                leveli++;
-                return leveli + sum_levels(node->left, leveli) + sum_levels(node->right, leveli);
-            }
         }
+
+        // recursive calls on left and right subtrees
+        size_t left_sum = sum_levels(node->left, leveli + 1);
+        size_t right_sum = sum_levels(node->right, leveli + 1);
+
+        return leveli + left_sum + right_sum;
     }
 
     size_t sum_null_levels() const {
@@ -495,16 +549,18 @@ private:
      */
     size_t sum_null_levels(Node<K, V> *node, size_t level) const {
         // TODO
-        size_t leveli = 0;
-        while(leveli != level){
-            if(node == nullptr){
-                return leveli * 1;
-            }
-            else{
-                leveli++;
-                return sum_null_levels(node->left, leveli) + sum_null_levels(node->right, leveli);
-            }
+        size_t leveli = level;
+
+        // null node contributes its level
+        if (node == nullptr) {
+            return leveli;
         }
+
+        // who up recursing it.. and by it.. lets just say.. my left and right subtrees
+        size_t left_sum = sum_null_levels(node->left, leveli + 1);
+        size_t right_sum = sum_null_levels(node->right, leveli + 1);
+
+        return left_sum + right_sum;
     }
 };
 
