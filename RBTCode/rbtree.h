@@ -93,7 +93,9 @@ public:
         while (x != nullptr){                       // findingour insertion point
             y = x;
             if (key == x->key()) {                      // check for duplicate key 
-                throw tree_exception("Duplicate key");
+                std::ostringstream oss;
+                oss << "Attempt to insert duplicate key '" << key << "'.";
+                throw tree_exception(oss.str());
             }
 
             else if (key < x->key()) {                 // adventurign thru the left subtree
