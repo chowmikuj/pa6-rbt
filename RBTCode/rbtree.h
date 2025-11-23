@@ -255,7 +255,7 @@ private:
         if(n != nullptr){
             delete_tree(n->left);       // recursive call on left child
             delete_tree(n->right);      // recursive call on right child
-            delete n;
+            delete n;                   // delete the current node
         }
     }
 
@@ -265,8 +265,8 @@ private:
     void insert_fixup(Node<K, V> *z) {
         // TODO
         Node<K, V> *y;
-        while(z->parent != nullptr && z->parent->color == RED){                 // While the color of z's parent is red, additional check for parent existing so that we don't segfault
-            if (z->parent->parent == nullptr) {   // Additional check for grandparent existing so that we don't segfault
+        while(z->parent != nullptr && z->parent->color == RED){     // While the color of z's parent is red, additional check for parent existing so that we don't segfault
+            if (z->parent->parent == nullptr) {                     // Additional check for grandparent existing so that we don't segfault
                 break;
             }
 
@@ -288,7 +288,7 @@ private:
                     right_rotate(z->parent->parent);
                 }
             }
-            else {
+            else {                                      // z's parent is a right child. same as then clause above, with left and right exchanged
                 y = z->parent->parent->left;
 
                 if (y != nullptr && y->color == RED) {
@@ -308,7 +308,7 @@ private:
                 }
             }
         }
-        // Last line below
+        // Last line below, alwasy ensure root is black
         root_->color = BLACK;
     }
 
@@ -368,7 +368,7 @@ private:
         y = x->left;                    // set y
 
         if (y == nullptr) {
-            return;                   // can't rotate if y is null
+            return;                     // can't rotate if y is null
         }
 
         x->left = y->right;             // turn y's right subtree into x's left subtree
@@ -394,10 +394,11 @@ private:
     int height(Node<K, V> *node) const {
         // TODO
         int h;
-        if(node == nullptr){
-            return -1;
+        if (node == nullptr) {
+            return -1;                      // base case
         }
-        else{
+        else {
+            // recursive calls on left and right subtrees
             int lheight = height(node->left);
             int rheight = height(node->right);
             h = std::max(lheight, rheight) + 1;
@@ -413,12 +414,15 @@ private:
     size_t leaf_count(Node<K, V> *node) const {
         // TODO
         if(node == nullptr){
-            return 0;
+            // null codes arent leaves
+            return 0;                              
         }
         if(node->left == nullptr && node->right == nullptr){
-            return 1;
+            // no children, found a leaf
+            return 1;                              
         }
-        else{
+        else {  
+            // recusrive calls on left and right subtrees                                
             return leaf_count(node->left) + leaf_count(node->right);
         }
     }
@@ -431,12 +435,15 @@ private:
     size_t internal_node_count(Node<K, V> *node) const {
         // TODO
         if(node == nullptr){
-            return 0;
+            // null nodes aren't internal nodes
+            return 0;   
         }
         if(node->left == nullptr && node->right == nullptr){
+            // leaf nodes aren't internal nodes
             return 0;
         }
-        else{
+        else {
+            // we have an internal node,recursive calls on left and right subtrees
             return 1 + internal_node_count(node->left) + internal_node_count(node->right);
         }
 
@@ -450,12 +457,16 @@ private:
         if(node == nullptr){
             return 0;
         }
+        
+        // get hieghts of left and right subtrees
         size_t lh = height(node->left);
         size_t rh = height(node->right);
 
+        // get diameters of left and right subtrees
         size_t ld = diameter(node->left);
         size_t rd = diameter(node->right);
 
+        // return max of the three values
         return std::max({lh + rh + 2, ld, rd}); //
     }
 
@@ -466,18 +477,20 @@ private:
     size_t width(Node<K, V> *node, size_t level) const {
         // TODO
         if(node == nullptr){
-            return 0;
+            return 0;   // no node no level
         }
         if(level == 0){
-            return 1;
+            return 1;   //  found a node at the desired level
         }
         // else if(level > 1){
         //     return width(node->left, level -1) + width(node-> right, level - 1);
         //}
 
+        // recurs calls on left and right subtrees
         size_t left_width = width(node->left, level - 1);
         size_t right_width = width(node->right, level - 1);
 
+        // return total width at this level
         return left_width + right_width;
     }
 
@@ -491,12 +504,15 @@ private:
      */
     size_t null_count(Node<K, V> *node) const {
         if(node == nullptr){
+            //  found a null pointer
             return 1;
         }
         if(node->left == nullptr && node->right == nullptr){
+            // leaf has 2 nil
             return 2;
         }
-        else{
+        else {
+            // recursive calls on left and right subtrees
             return null_count(node->left) + null_count(node->right);
         }
         
@@ -522,6 +538,7 @@ private:
         size_t leveli = level;
 
         if(node == nullptr) {
+            // null nodes do not contribute to sum
                 return 0;
         }
 
@@ -529,6 +546,7 @@ private:
         size_t left_sum = sum_levels(node->left, leveli + 1);
         size_t right_sum = sum_levels(node->right, leveli + 1);
 
+        // sum of levels with current node's level + left and right subtree sums
         return leveli + left_sum + right_sum;
     }
 
