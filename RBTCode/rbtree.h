@@ -1,9 +1,9 @@
 
 /*******************************************************************************
  * Name        : rbtree.h
- * Author      : Joshua Dayo, Rachel Naomi Quedding
+ * Author      : Rachel Naomi Quedding and Joshua Dayo
  * Version     : 1.0
- * Date        : 11.22.2025
+ * Date        : November 22, 2025
  * Description : Implementation of red-black tree.
  * Pledge      : I pledge my honor that I have abided by the Stevens Honor System.
  ******************************************************************************/
@@ -217,7 +217,6 @@ private:
      */
     void delete_tree(Node<K, V> *n) {
         // TODO
-        // prob a recursive function
         if(n != nullptr){
             delete_tree(n->left);       // recursive call on left child
             delete_tree(n->right);      // recursive call on right child
@@ -231,10 +230,10 @@ private:
     void insert_fixup(Node<K, V> *z) {
         // TODO
         Node<K, V> *y;
-        while(z->parent->color == RED){
-            if(z->parent == z->parent->parent->left){
-                y = z->parent->parent->right;
-                if(y->color == RED){
+        while(z->parent->color == RED){ // While the color of z's parent is red
+            if(z->parent == z->parent->parent->left){ // Check if z's parent is a left child
+                y = z->parent->parent->right;   // Set y to be the right child of z's grandparent
+                if(y->color == RED){        
                     z->parent->color = BLACK;
                     y->color = BLACK;
                     z->parent->parent->color = RED;
@@ -249,6 +248,7 @@ private:
                     z->parent->parent->color = RED;
                     right_rotate(z->parent->parent);
                 }
+            }
             else{
                 y = z->parent->parent->left;
                 if(y->color == RED){
@@ -276,6 +276,8 @@ private:
      * Left-rotate method described on p. 313 of CLRS.
      */
     void left_rotate(Node<K, V> *x) {
+        // TODO
+
         /* pseudo start
         y = x.right                  // set y
         x.right = y.left             // turn y's left subtree into x's right subtree
@@ -292,6 +294,7 @@ private:
         x.parent = y
         pseudo end */
 
+        Node<K,V> *y;
         y = x->right;                 // set y
         x->right = y->left;           // turn y's left subtree into x's right subtree
         if (y->left != nullptr) {
@@ -315,6 +318,8 @@ private:
      */
     void right_rotate(Node<K, V> *x) {
         // TODO
+
+        Node<K,V> *y;
         y = x->left;                    // set y
         x->left = y->right;             // turn y's right subtree into x's left subtree
         if (y->right != nullptr) {
@@ -338,13 +343,14 @@ private:
      */
     int height(Node<K, V> *node) const {
         // TODO
+        int h;
         if(node == nullptr){
             return -1;
         }
         else{
-            lheight = height(node->left);
-            rheight = height(node->right);
-            h = max(lheight, rheight) + 1;
+            int lheight = height(node->left);
+            int rheight = height(node->right);
+            h = std::max(lheight, rheight) + 1;
         }
 
         return h;
@@ -356,9 +362,15 @@ private:
      */
     size_t leaf_count(Node<K, V> *node) const {
         // TODO
-        int count = 0;
-
-        
+        if(node == nullptr){
+            return 0;
+        }
+        if(node->left == nullptr && node->right == nullptr){
+            return 1;
+        }
+        else{
+            return leaf_count(node->left) + leaf_count(node->right);
+        }
     }
 
     /**
@@ -368,6 +380,16 @@ private:
      */
     size_t internal_node_count(Node<K, V> *node) const {
         // TODO
+        if(node == nullptr){
+            return 0;
+        }
+        if(node->left == nullptr && node->right == nullptr){
+            return 0;
+        }
+        else{
+            return 1 + internal_node_count(node->left) + internal_node_count(node->right);
+        }
+
     }
 
     /**
@@ -375,6 +397,16 @@ private:
      */
     size_t diameter(Node<K, V> *node) const {
         // TODO
+        if(node == nullptr){
+            return 0;
+        }
+        size_t lh = height(node->left);
+        size_t rh = height(node->right);
+
+        size_t ld = diameter(node->left);
+        size_t rd = diameter(node->right);
+
+        return std::max({lh + rh, ld, rd});
     }
 
     /**
@@ -383,7 +415,15 @@ private:
      */
     size_t width(Node<K, V> *node, size_t level) const {
         // TODO
-        if
+        if(node == nullptr){
+            return 0;
+        }
+        if(level == 1){
+            return 1;
+        }
+        else if(level > 1){
+            return width(node->left, level -1) + width(node-> right, level - 1);
+        }
     }
 
     size_t null_count() const {
@@ -395,21 +435,16 @@ private:
      * node.
      */
     size_t null_count(Node<K, V> *node) const {
-        size_t count = 1;
         if(node == nullptr){
-            return count;
+            return 1;
         }
         if(node->left == nullptr && node->right == nullptr){
-            count = 2;
-            return count;
-        }
-        if(node->left == nullptr && node->right != nullptr){
-            count += null_count(node->right);
+            return 2;
         }
         else{
-            count += null_count(node->left);
+            return null_count(node->left) + null_count(node->right);
         }
-        return count;
+        
     }
 
     size_t sum_levels() const {
@@ -429,6 +464,16 @@ private:
      */
     size_t sum_levels(Node<K, V> *node, size_t level) const {
         // TODO
+        size_t leveli = 0;
+        while(leveli != level){
+            if(node == nullptr || level == 0){
+                return 0;
+            }
+            else{
+                leveli++;
+                return leveli + sum_levels(node->left, leveli) + sum_levels(node->right, leveli);
+            }
+        }
     }
 
     size_t sum_null_levels() const {
@@ -450,6 +495,16 @@ private:
      */
     size_t sum_null_levels(Node<K, V> *node, size_t level) const {
         // TODO
+        size_t leveli = 0;
+        while(leveli != level){
+            if(node == nullptr){
+                return leveli * 1;
+            }
+            else{
+                leveli++;
+                return sum_null_levels(node->left, leveli) + sum_null_levels(node->right, leveli);
+            }
+        }
     }
 };
 
